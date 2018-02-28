@@ -10,5 +10,8 @@ jobs:
           name: Build
           command: go build ./cmd/check-go-files
       - run:
+          name: Install deps
+          command: ./install-deps.sh
+      - run:
           name: Self-check
           command: ./check-go-files -all
