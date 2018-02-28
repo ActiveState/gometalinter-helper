@@ -57,7 +57,7 @@ func usage() {
   directory tree.
 
   If you pass the "-commit-hook" flag then it will check new or modified files
-  that are about to be committed. 
+  that are about to be committed in a Git repo.
 
   If the neither flag is passed and the CI environment variable is set, then it
   will run a check of the current branch. If that branch is "master" than it
