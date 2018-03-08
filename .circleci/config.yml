@@ -21,20 +21,4 @@ jobs:
           command: go build ./cmd/gometalinter-helper
       - run:
           name: Self-check
-          command: |
-            ./gometalinter-helper \
-                -exe gometalinter.v2 \
-                -- \
-                --vendor \
-                --disable-all \
-                --sort=path \
-                --enable=errcheck \
-                --enable=gofmt \
-                --enable=golint \
-                --enable=megacheck \
-                --enable=misspell \
-                --enable=structcheck \
-                --enable=varcheck \
-                --enable=vet \
-                ./...
-
+          command: ./self-check.sh ./gometalinter-helper
