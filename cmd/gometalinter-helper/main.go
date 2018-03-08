@@ -264,9 +264,7 @@ func linesFrom(from string) []string {
 
 func (h *helper) runMetalinter() int {
 	args := h.gmlArgs
-	for _, d := range h.dirs {
-		args = append(args, d)
-	}
+	args = append(args, h.dirs...)
 	if h.verbose {
 		fmt.Printf("Executing %s %s\n", h.exe, strings.Join(args, " "))
 	}
