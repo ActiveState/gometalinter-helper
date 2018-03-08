@@ -143,6 +143,11 @@ func (h *helper) setDirs() {
 
 	dirs := make(map[string]bool)
 	for _, f := range files {
+		if regexp.MustCompile(`\.\.\.$`).MatchString(f) {
+			dirs[f] = true
+			continue
+		}
+
 		i, err := os.Stat(f)
 		if err != nil {
 			fmt.Printf("Error stat'ing %s\n", f)
