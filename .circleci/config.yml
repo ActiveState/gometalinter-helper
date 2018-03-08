@@ -3,15 +3,38 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.9
-    working_directory: /go/src/github.com/ActiveState/check-go-files
+    working_directory: /go/src/github.com/ActiveState/gometalinter-helper
     steps:
       - checkout
-      - run:
-          name: Build
-          command: go build ./cmd/check-go-files
+      - restore_cache:
+          keys:
+            - pkg
       - run:
           name: Install deps
           command: ./install-deps.sh
+      - save_cache:
+          paths:
+            - /go/pkg
+          key: pkg
+      - run:
+          name: Build
+          command: go build ./cmd/gometalinter-helper
       - run:
           name: Self-check
-          command: ./check-go-files -all
+          command: |
+            ./gometalinter-helper \
+                -exe gometalinter.v2 \
+                -- \
+                --vendor \
+                --disable-all \
+                --sort=path \
+                --enable=errcheck \
+                --enable=gofmt \
+                --enable=golint \
+                --enable=megacheck \
+                --enable=misspell \
+                --enable=structcheck \
+                --enable=varcheck \
+                --enable=vet \
+                ./...
+
