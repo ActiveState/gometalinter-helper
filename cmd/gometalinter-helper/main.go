@@ -12,6 +12,8 @@ import (
 	"sort"
 	"strings"
 	"syscall"
+
+	zglob "github.com/mattn/go-zglob"
 )
 
 type helper struct {
@@ -19,9 +21,25 @@ type helper struct {
 	all      bool
 	exe      string
 	verbose  bool
+	ignore   []string
 	dirs     []string
 	fileArgs []string
 	gmlArgs  []string
+}
+
+type stringFlags []string
+
+func (f *stringFlags) String() string {
+	s := ""
+	for _, v := range *f {
+		s += fmt.Sprintf("-ignore %s", v)
+	}
+	return s
+}
+
+func (f *stringFlags) Set(value string) error {
+	*f = append(*f, value)
+	return nil
 }
 
 func main() {
@@ -30,6 +48,8 @@ func main() {
 	flag.BoolVar(&h.hook, "commit-hook", false, "Check files that are staged for a commit.")
 	flag.BoolVar(&h.all, "all", false, "Check all files in the tree.")
 	flag.StringVar(&h.exe, "exe", "gometalinter", "The name of the executable to run.")
+	var ignore stringFlags
+	flag.Var(&ignore, "ignore", "Ignore all files listed in the given file. The file should be in .gitignore format. Can be passed multiple times.")
 	flag.BoolVar(&h.verbose, "verbose", false, "Be verbose about it.")
 	var help bool
 	flag.BoolVar(&help, "help", false, "Show usage information.")
@@ -38,6 +58,10 @@ func main() {
 	if help {
 		usage("")
 		os.Exit(0)
+	}
+
+	if len(ignore) != 0 {
+		h.readIgnoreFiles(ignore)
 	}
 
 	h.parseExtraArgs()
@@ -57,7 +81,7 @@ func usage(err string) {
 	}
 
 	fmt.Print(`
-  gometalinter-helper [-commit-hook] [-all] [-exe ...] -- [args to gometalinter]
+ gometalinter-helper [-commit-hook] [-all] [-exe ...] -- [args to gometalinter]
 
   This command wraps gometalinter to make it a bit simpler to use with a
   commit hook or in a CI environment. You can also run it as a standalone
@@ -66,16 +90,21 @@ func usage(err string) {
   It has a number of modes, depending on what arguments you pass it and the
   presence of an environment variable named "CI".
 
-  If you pass the "-all" flag then it will check all Go files in the current
-  directory tree.
+  * -all - If you pass this flag then it will check all Go files in the
+    current directory tree.
 
-  If you pass the "-commit-hook" flag then it will check new or modified files
-  that are about to be committed in a Git repo.
+  * -commit-hook - If you pass this flag then it will check new or modified
+    files that are about to be committed in a Git repo.
 
-  If the neither flag is passed and the CI environment variable is set, then it
-  will run a check of the current branch. If that branch is "master" than it
-  checks all Go files (like the "-all" flag). Otherwise it checks Go files in
-  the current branch that differ from master.
+  * -ignore - If you have files with zglob ignore patterns like .gitignore you
+    can pass these files via the "-ignore". Any files matching these patterns
+    will be ignored.
+
+  If the neither "-all" nor "-commit-hook" is passed and the "CI" environment
+  variable is set, then it will run a check of the current branch. If that
+  branch is "master" than it checks all Go files (like the "-all"
+  flag). Otherwise it checks Go files in the current branch that differ from
+  master.
 
   Finally, you can pass an explicit list of files to check. Note that if you
   have files starting with a dash (-) this will probably blow up
@@ -87,6 +116,25 @@ func usage(err string) {
 
 `)
 	flag.PrintDefaults()
+}
+
+func (h *helper) readIgnoreFiles(files []string) {
+	for _, file := range files {
+		f, err := os.Open(file)
+		if err != nil {
+			fmt.Printf("Could not open %s for reading: %s", file, err)
+			os.Exit(1)
+		}
+		// nolint: errcheck
+		defer f.Close()
+
+		s := bufio.NewScanner(f)
+		for s.Scan() {
+			if regexp.MustCompile(`\S`).MatchString(s.Text()) {
+				h.ignore = append(h.ignore, strings.TrimSpace(s.Text()))
+			}
+		}
+	}
 }
 
 func (h *helper) parseExtraArgs() {
@@ -142,18 +190,24 @@ func (h *helper) setDirs() {
 	}
 
 	dirs := make(map[string]bool)
+Files:
 	for _, f := range files {
-		if regexp.MustCompile(`\.\.\.$`).MatchString(f) {
-			dirs[f] = true
-			continue
+		for _, i := range h.ignore {
+			m, err := zglob.Match(i, f)
+			if err != nil {
+				fmt.Printf("Error with zglob (%s): %s", i, err)
+			}
+			if m {
+				continue Files
+			}
 		}
 
-		i, err := os.Stat(f)
+		info, err := os.Stat(f)
 		if err != nil {
 			fmt.Printf("Error stat'ing %s\n", f)
 			os.Exit(1)
 		}
-		if i.IsDir() {
+		if info.IsDir() {
 			dirs[f] = true
 		} else {
 			dirs[filepath.Dir(f)] = true
