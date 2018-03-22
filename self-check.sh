@@ -9,6 +9,7 @@ fi
 $command \
     -verbose \
     -exe gometalinter.v2 \
+    -all \
     -- \
     --vendor \
     --disable-all \
@@ -20,4 +21,3 @@ $command \
     --enable=megacheck \
     --enable=misspell \
     --enable=structcheck \
-    ./...
