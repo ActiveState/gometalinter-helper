@@ -100,7 +100,7 @@ func usage(err string) {
     can pass these files via the "-ignore". Any files matching these patterns
     will be ignored.
 
-  If the neither "-all" nor "-commit-hook" is passed and the "CI" environment
+  If neither "-all" nor "-commit-hook" is passed and the "CI" environment
   variable is set, then it will run a check of the current branch. If that
   branch is "master" than it checks all Go files (like the "-all"
   flag). Otherwise it checks Go files in the current branch that differ from
