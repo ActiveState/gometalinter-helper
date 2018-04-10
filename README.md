@@ -6,10 +6,6 @@ GitHub](https://github.com/ActiveState/gometalinter-helper/releases).
 You can use [`godownloader`](https://github.com/goreleaser/godownloader) to
 generate a shell script that downloads and installs the latest release.
 
-```
-$> godownloader github.com/ActiveState/gometalinter-helper
-```
-
 You can also install the latest commit with:
 
 ```
