@@ -1,3 +1,23 @@
+# Installation
+
+Tagged releases are [available from
+GitHub](https://github.com/ActiveState/gometalinter-helper/releases).
+
+You can use [`godownloader`](https://github.com/goreleaser/godownloader) to
+generate a shell script that downloads and installs the latest release.
+
+```
+$> godownloader github.com/ActiveState/gometalinter-helper
+```
+
+You can also install the latest commit with:
+
+```
+$> go install github.com/ActiveState/gometalinter-helper/cmd/gometalinter-helper
+```
+
+## Usage
+
 gometalinter-helper [-commit-hook] [-all] [-exe ...] -- [args to gometalinter]
 
 This command wraps gometalinter to make it a bit simpler to use with a
