@@ -42,13 +42,8 @@ It will always ignore files in a directory named "vendor" or ".git".
 
 It accepts the following arguments:
 
--all
-  	Check all files in the tree.
--commit-hook
-  	Check files that are staged for a commit.
--exe string
-  	The name of the executable to run. (default "gometalinter")
--help
-  	Show usage information.
--verbose
-  	Be verbose about it.
+* -all - Check all files in the tree.
+* -commit-hook - Check files that are staged for a commit.
+* -exe string - The name of the executable to run. (default "gometalinter")
+* -verbose - Be verbose about it.
+* -help - Show usage information.
