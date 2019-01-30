@@ -13,7 +13,7 @@ import (
 	"strings"
 	"syscall"
 
-	zglob "github.com/mattn/go-zglob"
+	gitignore "github.com/sabhiram/go-gitignore"
 )
 
 type helper struct {
@@ -21,7 +21,7 @@ type helper struct {
 	all      bool
 	exe      string
 	verbose  bool
-	ignore   []string
+	ignorers []*gitignore.GitIgnore
 	dirs     []string
 	fileArgs []string
 	gmlArgs  []string
@@ -120,20 +120,16 @@ func usage(err string) {
 
 func (h *helper) readIgnoreFiles(files []string) {
 	for _, file := range files {
-		f, err := os.Open(file)
+		if h.verbose {
+			fmt.Printf("Reading %s for patterns to ignore\n", file)
+		}
+
+		ignorer, err := gitignore.CompileIgnoreFile(file)
 		if err != nil {
-			fmt.Printf("Could not open %s for reading: %s", file, err)
+			fmt.Printf("Error parsing ignore patterns from %s: %s", file, err)
 			os.Exit(1)
 		}
-		// nolint: errcheck
-		defer f.Close()
-
-		s := bufio.NewScanner(f)
-		for s.Scan() {
-			if regexp.MustCompile(`\S`).MatchString(s.Text()) {
-				h.ignore = append(h.ignore, strings.TrimSpace(s.Text()))
-			}
-		}
+		h.ignorers = append(h.ignorers, ignorer)
 	}
 }
 
@@ -192,12 +188,11 @@ func (h *helper) setDirs() {
 	dirs := make(map[string]bool)
 Files:
 	for _, f := range files {
-		for _, i := range h.ignore {
-			m, err := zglob.Match(i, f)
-			if err != nil {
-				fmt.Printf("Error with zglob (%s): %s", i, err)
-			}
-			if m {
+		for _, i := range h.ignorers {
+			if i.MatchesPath(f) {
+				if h.verbose {
+					fmt.Printf("Ignoring %s because it matches an ignore pattern\n", f)
+				}
 				continue Files
 			}
 		}
