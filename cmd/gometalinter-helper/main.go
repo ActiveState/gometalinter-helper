@@ -204,7 +204,7 @@ Files:
 
 		info, err := os.Stat(f)
 		if err != nil {
-			fmt.Printf("Error stat'ing %s\n", f)
+			fmt.Printf("Error stat'ing %s: %s\n", f, err)
 			os.Exit(1)
 		}
 		if info.IsDir() {
