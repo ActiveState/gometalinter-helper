@@ -23,16 +23,21 @@ command.
 It has a number of modes, depending on what arguments you pass it and the
 presence of an environment variable named "CI".
 
-If you pass the "-all" flag then it will check all Go files in the current
-directory tree.
+* -all - If you pass this flag then it will check all Go files in the
+  current directory tree.
 
-If you pass the "-commit-hook" flag then it will check new or modified files
-that are about to be committed in a Git repo.
+* -commit-hook - If you pass this flag then it will check new or modified
+  files that are about to be committed in a Git repo.
 
-If the neither flag is passed and the CI environment variable is set, then it
-will run a check of the current branch. If that branch is "master" than it
-checks all Go files (like the "-all" flag). Otherwise it checks Go files in
-the current branch that differ from master.
+* -ignore - If you have files with zglob ignore patterns like .gitignore you
+  can pass these files via the "-ignore". Any files matching these patterns
+  will be ignored.
+
+If neither "-all" nor "-commit-hook" is passed and the "CI" environment
+variable is set, then it will run a check of the current branch. If that
+branch is "master" than it checks all Go files (like the "-all"
+flag). Otherwise it checks Go files in the current branch that differ from
+master.
 
 Finally, you can pass an explicit list of files to check. Note that if you
 have files starting with a dash (-) this will probably blow up
@@ -45,5 +50,7 @@ It accepts the following arguments:
 * -all - Check all files in the tree.
 * -commit-hook - Check files that are staged for a commit.
 * -exe string - The name of the executable to run. (default "gometalinter")
-* -verbose - Be verbose about it.
 * -help - Show usage information.
+* -ignore value - Ignore all files listed in the given file. The file should
+  be in .gitignore format. Can be passed multiple times.
+* -verbose - Be verbose about it.
